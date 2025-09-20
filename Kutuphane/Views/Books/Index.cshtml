@@ -8,7 +8,46 @@
 
 <p>
     <a asp-action="Create">Create New</a>
-</p>
+</p> 
+
+@using Kutuphane.Models
+@{
+    var currentSearch = ViewData["CurrentSearch"] as string;
+    var currentStatus = ViewData["CurrentStatus"] as ReadingStatus?;
+}
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <input name="search"
+               class="form-control"
+               placeholder="Ada / Yazara / Tür'e göre ara"
+               value="@currentSearch" />
+    </div>
+
+    <div class="col-auto">
+        <select name="status" class="form-select">
+            <option value="">Tümü</option>
+            @foreach (var item in Html.GetEnumSelectList<ReadingStatus>())
+            {
+                var isSelected = currentStatus.HasValue &&
+                item.Value == currentStatus.Value.ToString();
+                <option value="@item.Value" selected="@(isSelected ? "selected" : null)">
+                    @item.Text
+                </option>
+            }
+        </select>
+    </div>
+
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Filtrele</button>
+    </div>
+
+    <div class="col-auto">
+        <a class="btn btn-secondary" href="@Url.Action("Index")">Sıfırla</a>
+    </div>
+</form>
+
+
 <table class="table">
     <thead>
         <tr>

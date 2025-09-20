@@ -20,9 +20,29 @@ namespace Kutuphane.Controllers
         }
 
         // GET: Books
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? search, ReadingStatus? status)
         {
-            return View(await _context.Books.ToListAsync());
+            ViewData["CurrentSearch"] = search;
+            ViewData["CurrentStatus"] = status;
+
+            var q = _context.Books.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim().ToLower();
+                q = q.Where(b =>
+                    b.Title.ToLower().Contains(s) ||
+                    b.Author.ToLower().Contains(s) ||
+                    b.Genre.ToLower().Contains(s));
+            }
+
+            if (status.HasValue)
+            {
+                q = q.Where(b => b.Status == status);
+            }
+
+            var list = await q.OrderBy(b => b.Title).ToListAsync();
+            return View(list);
         }
 
         // GET: Books/Details/5
