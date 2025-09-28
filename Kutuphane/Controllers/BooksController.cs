@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Kutuphane.Data;
 using Kutuphane.Models;
+using Kutuphane.Helpers;
 
 namespace Kutuphane.Controllers
 {
@@ -20,70 +19,81 @@ namespace Kutuphane.Controllers
         }
 
         // GET: Books
-        public async Task<IActionResult> Index(string? search, ReadingStatus? status)
+        // Desteklediği query string: ?search=&status=&sort=&page=&pageSize=
+        public async Task<IActionResult> Index(
+            string? search,
+            ReadingStatus? status,
+            string? sort,
+            int page = 1,
+            int pageSize = 9)
         {
             ViewData["CurrentSearch"] = search;
             ViewData["CurrentStatus"] = status;
+            ViewData["CurrentSort"] = sort;
+            ViewData["PageSize"] = pageSize;
 
             var q = _context.Books.AsQueryable();
 
+            // Arama
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var s = search.Trim().ToLower();
                 q = q.Where(b =>
                     b.Title.ToLower().Contains(s) ||
                     b.Author.ToLower().Contains(s) ||
-                    b.Genre.ToLower().Contains(s));
+                    (b.Genre != null && b.Genre.ToLower().Contains(s)));
             }
 
+            // Durum filtresi
             if (status.HasValue)
-            {
                 q = q.Where(b => b.Status == status);
-            }
 
-            var list = await q.OrderBy(b => b.Title).ToListAsync();
-            return View(list);
+            // Sıralama
+            // sort: title, title_desc, author, author_desc, rating, rating_desc
+            q = sort switch
+            {
+                "title_desc" => q.OrderByDescending(b => b.Title),
+                "author" => q.OrderBy(b => b.Author),
+                "author_desc" => q.OrderByDescending(b => b.Author),
+                "rating" => q.OrderBy(b => b.Rating),
+                "rating_desc" => q.OrderByDescending(b => b.Rating),
+                _ => q.OrderBy(b => b.Title) // default: title
+            };
+
+            // Sayfalama
+            var paged = await PaginatedList<Book>.CreateAsync(q, page, pageSize);
+            return View(paged);
         }
 
         // GET: Books/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-
             var book = await _context.Books.FirstOrDefaultAsync(m => m.Id == id);
             if (book == null) return NotFound();
-
             return View(book);
         }
 
         // GET: Books/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
+        public IActionResult Create() => View();
 
         // POST: Books/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Title,Author,Genre,Status,Notes,CoverImageUrl,Rating,PageCount,IsFavorite,Progress")] Book book)
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(book);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(book);
+            if (!ModelState.IsValid) return View(book);
+            _context.Add(book);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Books/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
-
             var book = await _context.Books.FindAsync(id);
             if (book == null) return NotFound();
-
             return View(book);
         }
 
@@ -93,32 +103,27 @@ namespace Kutuphane.Controllers
         public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Author,Genre,Status,Notes,CoverImageUrl,Rating,PageCount,IsFavorite,Progress")] Book book)
         {
             if (id != book.Id) return NotFound();
+            if (!ModelState.IsValid) return View(book);
 
-            if (ModelState.IsValid)
+            try
             {
-                try
-                {
-                    _context.Update(book);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!BookExists(book.Id)) return NotFound();
-                    else throw;
-                }
-                return RedirectToAction(nameof(Index));
+                _context.Update(book);
+                await _context.SaveChangesAsync();
             }
-            return View(book);
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.Books.Any(e => e.Id == book.Id)) return NotFound();
+                throw;
+            }
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Books/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
-
             var book = await _context.Books.FirstOrDefaultAsync(m => m.Id == id);
             if (book == null) return NotFound();
-
             return View(book);
         }
 
@@ -129,14 +134,8 @@ namespace Kutuphane.Controllers
         {
             var book = await _context.Books.FindAsync(id);
             if (book != null) _context.Books.Remove(book);
-
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool BookExists(int id)
-        {
-            return _context.Books.Any(e => e.Id == id);
         }
     }
 }

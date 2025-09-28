@@ -1,37 +1,70 @@
-﻿@model IEnumerable<Kutuphane.Models.Book>
+﻿@model Kutuphane.Helpers.PaginatedList<Kutuphane.Models.Book>
 @using Kutuphane.Models
 
 @{
     ViewData["Title"] = "Kitaplarım";
+    var currentSearch = ViewData["CurrentSearch"] as string;
+    var currentStatus = ViewData["CurrentStatus"] as ReadingStatus?;
+    var currentSort = ViewData["CurrentSort"] as string ?? "";
+    var pageSize = (int)(ViewData["PageSize"] ?? 9);
+    string Q(string key, object? value) => $"{key}={value}";
 }
 
 <h1 class="mb-4">📚 Kitaplarım</h1>
 
-<form method="get" class="row mb-4">
+<form method="get" class="row g-2 mb-4">
     <div class="col-md-5">
-        <input name="search" class="form-control" placeholder="Kitap, yazar veya tür ara..." value="@ViewData["CurrentSearch"]" />
+        <input name="search" class="form-control" placeholder="Kitap, yazar veya tür ara..."
+               value="@currentSearch" />
     </div>
     <div class="col-md-3">
         <select name="status" class="form-control">
             <option value="">Tüm Durumlar</option>
-            @foreach (var status in Enum.GetValues(typeof(ReadingStatus)))
+            @foreach (var s in Enum.GetValues(typeof(ReadingStatus)))
             {
-                var selected = (ReadingStatus?)ViewData["CurrentStatus"] == (ReadingStatus)status;
-                <option value="@status" selected="@(selected ? "selected" : null)">@status</option>
+                var selected = currentStatus.HasValue && currentStatus.Value.Equals((ReadingStatus)s);
+                <option value="@s" selected="@(selected ? "selected" : null)">@s</option>
             }
         </select>
     </div>
     <div class="col-md-2">
-        <button type="submit" class="btn btn-primary w-100">Filtrele</button>
+        <select name="pageSize" class="form-control">
+            @{
+                int[] sizes = new[] { 6, 9, 12, 18, 24 };
+                foreach (var s in sizes)
+                {
+                    <option value="@s" selected="@(s == pageSize ? "selected" : null)">@s / sayfa</option>
+                }
+            }
+        </select>
     </div>
-    <div class="col-md-2">
-        <a href="@Url.Action("Create")" class="btn btn-success w-100">➕ Yeni Kitap</a>
+    <div class="col-md-2 d-grid">
+        <button type="submit" class="btn btn-primary">Filtrele</button>
     </div>
 </form>
 
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="btn-group" role="group" aria-label="Sıralama">
+        <a class="btn btn-outline-secondary @(currentSort == "" ? "active" : "")"
+           href="@Url.Action("Index", new { search = currentSearch, status = currentStatus, sort = "", page = 1, pageSize })">Başlığa göre (A→Z)</a>
+        <a class="btn btn-outline-secondary @(currentSort == "title_desc" ? "active" : "")"
+           href="@Url.Action("Index", new { search = currentSearch, status = currentStatus, sort = "title_desc", page = 1, pageSize })">Başlığa göre (Z→A)</a>
+        <a class="btn btn-outline-secondary @(currentSort == "author" ? "active" : "")"
+           href="@Url.Action("Index", new { search = currentSearch, status = currentStatus, sort = "author", page = 1, pageSize })">Yazara göre (A→Z)</a>
+        <a class="btn btn-outline-secondary @(currentSort == "author_desc" ? "active" : "")"
+           href="@Url.Action("Index", new { search = currentSearch, status = currentStatus, sort = "author_desc", page = 1, pageSize })">Yazara göre (Z→A)</a>
+        <a class="btn btn-outline-secondary @(currentSort == "rating_desc" ? "active" : "")"
+           href="@Url.Action("Index", new { search = currentSearch, status = currentStatus, sort = "rating_desc", page = 1, pageSize })">Puana göre (yüksek)</a>
+        <a class="btn btn-outline-secondary @(currentSort == "rating" ? "active" : "")"
+           href="@Url.Action("Index", new { search = currentSearch, status = currentStatus, sort = "rating", page = 1, pageSize })">Puana göre (düşük)</a>
+    </div>
+
+    <a href="@Url.Action("Create")" class="btn btn-success">➕ Yeni Kitap</a>
+</div>
+
 @if (!Model.Any())
 {
-    <div class="alert alert-info">Hiç kitap eklenmemiş.</div>
+    <div class="alert alert-info">Kriterlere uygun kitap bulunamadı.</div>
 }
 else
 {
@@ -39,49 +72,74 @@ else
         @foreach (var book in Model)
         {
             <div class="col">
-                <div class="card h-100">
-                    @if (!string.IsNullOrEmpty(book.CoverImageUrl))
+                <div class="card h-100 shadow-sm">
+                    @if (!string.IsNullOrWhiteSpace(book.CoverImageUrl))
                     {
-                        <img src="@book.CoverImageUrl" class="card-img-top" alt="Kapak görseli" style="height: 200px; object-fit: cover;" />
+                        <img src="@book.CoverImageUrl" class="card-img-top" alt="@book.Title"
+                             style="height: 220px; object-fit: cover;" />
                     }
                     <div class="card-body">
-                        <h5 class="card-title">@book.Title</h5>
-                        <p class="card-text text-muted">@book.Author</p>
-                        <p class="card-text"><strong>Tür:</strong> @book.Genre</p>
-                        <p class="card-text"><strong>Durum:</strong> @book.Status</p>
-
-                        @if (!string.IsNullOrEmpty(book.Notes))
+                        <h5 class="card-title mb-1">@book.Title</h5>
+                        <div class="text-muted mb-2">@book.Author</div>
+                        @if (!string.IsNullOrEmpty(book.Genre))
                         {
-                            <p class="card-text"><strong>Not:</strong> @book.Notes</p>
+                            <div><strong>Tür:</strong> @book.Genre</div>
                         }
-
-                        @if (book.PageCount.HasValue)
-                        {
-                            <p class="card-text"><strong>Sayfa:</strong> @book.PageCount</p>
-                        }
-
+                        <div><strong>Durum:</strong> @book.Status</div>
                         @if (book.Rating.HasValue)
                         {
-                            <p class="card-text"><strong>Puan:</strong> @book.Rating/5</p>
+                            <div><strong>Puan:</strong> @book.Rating/5</div>
                         }
-
+                        @if (book.PageCount.HasValue)
+                        {
+                            <div><strong>Sayfa:</strong> @book.PageCount</div>
+                        }
                         @if (book.Progress.HasValue)
                         {
-                            <p class="card-text"><strong>İlerleme:</strong> @book.Progress%</p>
+                            <div class="mt-2">
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar" role="progressbar"
+                                         style="width:@book.Progress%;">
+                                        @book.Progress%
+                                    </div>
+                                </div>
+                            </div>
                         }
-
                         @if (book.IsFavorite)
                         {
-                            <p class="card-text text-warning"><i class="bi bi-star-fill"></i> Favori</p>
+                            <span class="badge bg-warning text-dark mt-2">★ Favori</span>
                         }
                     </div>
-                    <div class="card-footer d-flex justify-content-between">
-                        <a href="@Url.Action("Edit", new { id = book.Id })" class="btn btn-sm btn-warning">Düzenle</a>
-                        <a href="@Url.Action("Details", new { id = book.Id })" class="btn btn-sm btn-info">Detay</a>
-                        <a href="@Url.Action("Delete", new { id = book.Id })" class="btn btn-sm btn-danger">Sil</a>
+                    <div class="card-footer d-flex gap-2 justify-content-between">
+                        <a asp-action="Edit" asp-route-id="@book.Id" class="btn btn-sm btn-outline-primary">Düzenle</a>
+                        <a asp-action="Details" asp-route-id="@book.Id" class="btn btn-sm btn-outline-info">Detay</a>
+                        <a asp-action="Delete" asp-route-id="@book.Id" class="btn btn-sm btn-outline-danger">Sil</a>
                     </div>
                 </div>
             </div>
         }
     </div>
+
+    <!-- Sayfalama -->
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                <a class="page-link"
+                   href="@Url.Action("Index", new { search = currentSearch, status = currentStatus, sort = currentSort, page = Model.PageIndex - 1, pageSize })">Önceki</a>
+            </li>
+
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                    <a class="page-link"
+                       href="@Url.Action("Index", new { search = currentSearch, status = currentStatus, sort = currentSort, page = i, pageSize })">@i</a>
+                </li>
+            }
+
+            <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                <a class="page-link"
+                   href="@Url.Action("Index", new { search = currentSearch, status = currentStatus, sort = currentSort, page = Model.PageIndex + 1, pageSize })">Sonraki</a>
+            </li>
+        </ul>
+    </nav>
 }
