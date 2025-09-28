@@ -1,98 +1,87 @@
 ﻿@model IEnumerable<Kutuphane.Models.Book>
-
-@{
-    ViewData["Title"] = "Index";
-}
-
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p> 
-
 @using Kutuphane.Models
+
 @{
-    var currentSearch = ViewData["CurrentSearch"] as string;
-    var currentStatus = ViewData["CurrentStatus"] as ReadingStatus?;
+    ViewData["Title"] = "Kitaplarım";
 }
 
-<form method="get" class="row g-2 mb-3">
-    <div class="col-auto">
-        <input name="search"
-               class="form-control"
-               placeholder="Ada / Yazara / Tür'e göre ara"
-               value="@currentSearch" />
-    </div>
+<h1 class="mb-4">📚 Kitaplarım</h1>
 
-    <div class="col-auto">
-        <select name="status" class="form-select">
-            <option value="">Tümü</option>
-            @foreach (var item in Html.GetEnumSelectList<ReadingStatus>())
+<form method="get" class="row mb-4">
+    <div class="col-md-5">
+        <input name="search" class="form-control" placeholder="Kitap, yazar veya tür ara..." value="@ViewData["CurrentSearch"]" />
+    </div>
+    <div class="col-md-3">
+        <select name="status" class="form-control">
+            <option value="">Tüm Durumlar</option>
+            @foreach (var status in Enum.GetValues(typeof(ReadingStatus)))
             {
-                var isSelected = currentStatus.HasValue &&
-                item.Value == currentStatus.Value.ToString();
-                <option value="@item.Value" selected="@(isSelected ? "selected" : null)">
-                    @item.Text
-                </option>
+                var selected = (ReadingStatus?)ViewData["CurrentStatus"] == (ReadingStatus)status;
+                <option value="@status" selected="@(selected ? "selected" : null)">@status</option>
             }
         </select>
     </div>
-
-    <div class="col-auto">
-        <button type="submit" class="btn btn-primary">Filtrele</button>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Filtrele</button>
     </div>
-
-    <div class="col-auto">
-        <a class="btn btn-secondary" href="@Url.Action("Index")">Sıfırla</a>
+    <div class="col-md-2">
+        <a href="@Url.Action("Create")" class="btn btn-success w-100">➕ Yeni Kitap</a>
     </div>
 </form>
 
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Title)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Author)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Genre)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Notes)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Title)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Author)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Genre)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Notes)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Hiç kitap eklenmemiş.</div>
 }
-    </tbody>
-</table>
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach (var book in Model)
+        {
+            <div class="col">
+                <div class="card h-100">
+                    @if (!string.IsNullOrEmpty(book.CoverImageUrl))
+                    {
+                        <img src="@book.CoverImageUrl" class="card-img-top" alt="Kapak görseli" style="height: 200px; object-fit: cover;" />
+                    }
+                    <div class="card-body">
+                        <h5 class="card-title">@book.Title</h5>
+                        <p class="card-text text-muted">@book.Author</p>
+                        <p class="card-text"><strong>Tür:</strong> @book.Genre</p>
+                        <p class="card-text"><strong>Durum:</strong> @book.Status</p>
+
+                        @if (!string.IsNullOrEmpty(book.Notes))
+                        {
+                            <p class="card-text"><strong>Not:</strong> @book.Notes</p>
+                        }
+
+                        @if (book.PageCount.HasValue)
+                        {
+                            <p class="card-text"><strong>Sayfa:</strong> @book.PageCount</p>
+                        }
+
+                        @if (book.Rating.HasValue)
+                        {
+                            <p class="card-text"><strong>Puan:</strong> @book.Rating/5</p>
+                        }
+
+                        @if (book.Progress.HasValue)
+                        {
+                            <p class="card-text"><strong>İlerleme:</strong> @book.Progress%</p>
+                        }
+
+                        @if (book.IsFavorite)
+                        {
+                            <p class="card-text text-warning"><i class="bi bi-star-fill"></i> Favori</p>
+                        }
+                    </div>
+                    <div class="card-footer d-flex justify-content-between">
+                        <a href="@Url.Action("Edit", new { id = book.Id })" class="btn btn-sm btn-warning">Düzenle</a>
+                        <a href="@Url.Action("Details", new { id = book.Id })" class="btn btn-sm btn-info">Detay</a>
+                        <a href="@Url.Action("Delete", new { id = book.Id })" class="btn btn-sm btn-danger">Sil</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
