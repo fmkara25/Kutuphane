@@ -27,17 +27,15 @@ namespace Kutuphane.Controllers
             int page = 1,
             int pageSize = 9)
         {
-            // ---- Dashboard sayaçları (tüm veri üzerinden) ----
-            var totalTask = _context.Books.CountAsync();
-            var readingTask = _context.Books.CountAsync(b => b.Status == ReadingStatus.Okuyorum);
-            var readTask = _context.Books.CountAsync(b => b.Status == ReadingStatus.Okudum);
-            var toReadTask = _context.Books.CountAsync(b => b.Status == ReadingStatus.Okuyacağım);
-            var favoriteTask = _context.Books.CountAsync(b => b.IsFavorite);
-
-            await Task.WhenAll(totalTask, readingTask, readTask, toReadTask, favoriteTask);
+            // ---- Dashboard sayaçları: ARDIŞIK çalıştır (concurrency yok) ----
+            var totalCount = await _context.Books.AsNoTracking().CountAsync();
+            var readingCount = await _context.Books.AsNoTracking().CountAsync(b => b.Status == ReadingStatus.Okuyorum);
+            var readCount = await _context.Books.AsNoTracking().CountAsync(b => b.Status == ReadingStatus.Okudum);
+            var toReadCount = await _context.Books.AsNoTracking().CountAsync(b => b.Status == ReadingStatus.Okuyacağım);
+            var favoriteCount = await _context.Books.AsNoTracking().CountAsync(b => b.IsFavorite);
 
             // ---- Liste sorgusu (filtre + sıralama + sayfalama) ----
-            var q = _context.Books.AsQueryable();
+            var q = _context.Books.AsNoTracking().AsQueryable();
 
             // Arama
             if (!string.IsNullOrWhiteSpace(search))
@@ -70,11 +68,11 @@ namespace Kutuphane.Controllers
             var vm = new BookListViewModel
             {
                 Books = paged,
-                TotalCount = await totalTask,
-                ReadingCount = await readingTask,
-                ReadCount = await readTask,
-                ToReadCount = await toReadTask,
-                FavoriteCount = await favoriteTask,
+                TotalCount = totalCount,
+                ReadingCount = readingCount,
+                ReadCount = readCount,
+                ToReadCount = toReadCount,
+                FavoriteCount = favoriteCount,
                 Search = search,
                 Status = status,
                 Sort = sort,
@@ -89,7 +87,7 @@ namespace Kutuphane.Controllers
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-            var book = await _context.Books.FirstOrDefaultAsync(m => m.Id == id);
+            var book = await _context.Books.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
             if (book == null) return NotFound();
             return View(book);
         }
@@ -132,7 +130,8 @@ namespace Kutuphane.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!_context.Books.Any(e => e.Id == book.Id)) return NotFound();
+                var exists = await _context.Books.AsNoTracking().AnyAsync(e => e.Id == book.Id);
+                if (!exists) return NotFound();
                 throw;
             }
             return RedirectToAction(nameof(Index));
@@ -142,7 +141,7 @@ namespace Kutuphane.Controllers
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
-            var book = await _context.Books.FirstOrDefaultAsync(m => m.Id == id);
+            var book = await _context.Books.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
             if (book == null) return NotFound();
             return View(book);
         }
