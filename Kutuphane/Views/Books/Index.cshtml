@@ -1,28 +1,69 @@
-﻿@model Kutuphane.Helpers.PaginatedList<Kutuphane.Models.Book>
+﻿@model Kutuphane.ViewModels.BookListViewModel
 @using Kutuphane.Models
 
 @{
     ViewData["Title"] = "Kitaplarım";
-    var currentSearch = ViewData["CurrentSearch"] as string;
-    var currentStatus = ViewData["CurrentStatus"] as ReadingStatus?;
-    var currentSort = ViewData["CurrentSort"] as string ?? "";
-    var pageSize = (int)(ViewData["PageSize"] ?? 9);
-    string Q(string key, object? value) => $"{key}={value}";
 }
 
-<h1 class="mb-4">📚 Kitaplarım</h1>
+<h1 class="mb-4 text-center">📚 Kitaplarım</h1>
 
+<!-- Dashboard kutuları -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md">
+        <div class="card text-center border-primary">
+            <div class="card-body">
+                <div class="fs-3">@Model.TotalCount</div>
+                <div class="text-muted">Toplam Kitap</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="card text-center border-success">
+            <div class="card-body">
+                <div class="fs-3">@Model.ReadingCount</div>
+                <div class="text-muted">Okuyor</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="card text-center border-purple">
+            <div class="card-body">
+                <div class="fs-3">@Model.ReadCount</div>
+                <div class="text-muted">Okudum</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="card text-center border-warning">
+            <div class="card-body">
+                <div class="fs-3">@Model.ToReadCount</div>
+                <div class="text-muted">Okuyacağım</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="card text-center border-danger">
+            <div class="card-body">
+                <div class="fs-3">@Model.FavoriteCount</div>
+                <div class="text-muted">Favoriler</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtreler -->
 <form method="get" class="row g-2 mb-4">
+    <input type="hidden" name="sort" value="@Model.Sort" />
     <div class="col-md-5">
         <input name="search" class="form-control" placeholder="Kitap, yazar veya tür ara..."
-               value="@currentSearch" />
+               value="@Model.Search" />
     </div>
     <div class="col-md-3">
         <select name="status" class="form-control">
             <option value="">Tüm Durumlar</option>
             @foreach (var s in Enum.GetValues(typeof(ReadingStatus)))
             {
-                var selected = currentStatus.HasValue && currentStatus.Value.Equals((ReadingStatus)s);
+                var selected = Model.Status.HasValue && Model.Status.Value.Equals((ReadingStatus)s);
                 <option value="@s" selected="@(selected ? "selected" : null)">@s</option>
             }
         </select>
@@ -31,9 +72,9 @@
         <select name="pageSize" class="form-control">
             @{
                 int[] sizes = new[] { 6, 9, 12, 18, 24 };
-                foreach (var s in sizes)
+                foreach (var ps in sizes)
                 {
-                    <option value="@s" selected="@(s == pageSize ? "selected" : null)">@s / sayfa</option>
+                    <option value="@ps" selected="@(ps == Model.PageSize ? "selected" : null)">@ps / sayfa</option>
                 }
             }
         </select>
@@ -43,33 +84,31 @@
     </div>
 </form>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div class="btn-group" role="group" aria-label="Sıralama">
-        <a class="btn btn-outline-secondary @(currentSort == "" ? "active" : "")"
-           href="@Url.Action("Index", new { search = currentSearch, status = currentStatus, sort = "", page = 1, pageSize })">Başlığa göre (A→Z)</a>
-        <a class="btn btn-outline-secondary @(currentSort == "title_desc" ? "active" : "")"
-           href="@Url.Action("Index", new { search = currentSearch, status = currentStatus, sort = "title_desc", page = 1, pageSize })">Başlığa göre (Z→A)</a>
-        <a class="btn btn-outline-secondary @(currentSort == "author" ? "active" : "")"
-           href="@Url.Action("Index", new { search = currentSearch, status = currentStatus, sort = "author", page = 1, pageSize })">Yazara göre (A→Z)</a>
-        <a class="btn btn-outline-secondary @(currentSort == "author_desc" ? "active" : "")"
-           href="@Url.Action("Index", new { search = currentSearch, status = currentStatus, sort = "author_desc", page = 1, pageSize })">Yazara göre (Z→A)</a>
-        <a class="btn btn-outline-secondary @(currentSort == "rating_desc" ? "active" : "")"
-           href="@Url.Action("Index", new { search = currentSearch, status = currentStatus, sort = "rating_desc", page = 1, pageSize })">Puana göre (yüksek)</a>
-        <a class="btn btn-outline-secondary @(currentSort == "rating" ? "active" : "")"
-           href="@Url.Action("Index", new { search = currentSearch, status = currentStatus, sort = "rating", page = 1, pageSize })">Puana göre (düşük)</a>
-    </div>
-
-    <a href="@Url.Action("Create")" class="btn btn-success">➕ Yeni Kitap</a>
+<!-- Sıralama butonları -->
+<div class="btn-group mb-3" role="group" aria-label="Sıralama">
+    <a class="btn btn-outline-secondary @(Model.Sort == "" ? "active" : "")"
+       href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = "", page = 1, pageSize = Model.PageSize })">Başlık (A→Z)</a>
+    <a class="btn btn-outline-secondary @(Model.Sort == "title_desc" ? "active" : "")"
+       href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = "title_desc", page = 1, pageSize = Model.PageSize })">Başlık (Z→A)</a>
+    <a class="btn btn-outline-secondary @(Model.Sort == "author" ? "active" : "")"
+       href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = "author", page = 1, pageSize = Model.PageSize })">Yazar (A→Z)</a>
+    <a class="btn btn-outline-secondary @(Model.Sort == "author_desc" ? "active" : "")"
+       href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = "author_desc", page = 1, pageSize = Model.PageSize })">Yazar (Z→A)</a>
+    <a class="btn btn-outline-secondary @(Model.Sort == "rating_desc" ? "active" : "")"
+       href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = "rating_desc", page = 1, pageSize = Model.PageSize })">Puan (yüksek)</a>
+    <a class="btn btn-outline-secondary @(Model.Sort == "rating" ? "active" : "")"
+       href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = "rating", page = 1, pageSize = Model.PageSize })">Puan (düşük)</a>
 </div>
+<a href="@Url.Action("Create")" class="btn btn-success ms-2">➕ Yeni Kitap</a>
 
-@if (!Model.Any())
+@if (!Model.Books.Any())
 {
-    <div class="alert alert-info">Kriterlere uygun kitap bulunamadı.</div>
+    <div class="alert alert-info mt-3">Kriterlere uygun kitap bulunamadı.</div>
 }
 else
 {
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        @foreach (var book in Model)
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mt-2">
+        @foreach (var book in Model.Books)
         {
             <div class="col">
                 <div class="card h-100 shadow-sm">
@@ -123,22 +162,22 @@ else
     <!-- Sayfalama -->
     <nav class="mt-4">
         <ul class="pagination justify-content-center">
-            <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+            <li class="page-item @(Model.Books.HasPreviousPage ? "" : "disabled")">
                 <a class="page-link"
-                   href="@Url.Action("Index", new { search = currentSearch, status = currentStatus, sort = currentSort, page = Model.PageIndex - 1, pageSize })">Önceki</a>
+                   href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = Model.Sort, page = Model.Books.PageIndex - 1, pageSize = Model.PageSize })">Önceki</a>
             </li>
 
-            @for (int i = 1; i <= Model.TotalPages; i++)
+            @for (int i = 1; i <= Model.Books.TotalPages; i++)
             {
-                <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                <li class="page-item @(i == Model.Books.PageIndex ? "active" : "")">
                     <a class="page-link"
-                       href="@Url.Action("Index", new { search = currentSearch, status = currentStatus, sort = currentSort, page = i, pageSize })">@i</a>
+                       href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = Model.Sort, page = i, pageSize = Model.PageSize })">@i</a>
                 </li>
             }
 
-            <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+            <li class="page-item @(Model.Books.HasNextPage ? "" : "disabled")">
                 <a class="page-link"
-                   href="@Url.Action("Index", new { search = currentSearch, status = currentStatus, sort = currentSort, page = Model.PageIndex + 1, pageSize })">Sonraki</a>
+                   href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = Model.Sort, page = Model.Books.PageIndex + 1, pageSize = Model.PageSize })">Sonraki</a>
             </li>
         </ul>
     </nav>
