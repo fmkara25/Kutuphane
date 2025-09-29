@@ -1,11 +1,11 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Kutuphane.Data;
 using Kutuphane.Models;
 using Kutuphane.Helpers;
+using Kutuphane.ViewModels;
 
 namespace Kutuphane.Controllers
 {
@@ -19,7 +19,7 @@ namespace Kutuphane.Controllers
         }
 
         // GET: Books
-        // Desteklediği query string: ?search=&status=&sort=&page=&pageSize=
+        // Query string: ?search=&status=&sort=&page=&pageSize=
         public async Task<IActionResult> Index(
             string? search,
             ReadingStatus? status,
@@ -27,11 +27,16 @@ namespace Kutuphane.Controllers
             int page = 1,
             int pageSize = 9)
         {
-            ViewData["CurrentSearch"] = search;
-            ViewData["CurrentStatus"] = status;
-            ViewData["CurrentSort"] = sort;
-            ViewData["PageSize"] = pageSize;
+            // ---- Dashboard sayaçları (tüm veri üzerinden) ----
+            var totalTask = _context.Books.CountAsync();
+            var readingTask = _context.Books.CountAsync(b => b.Status == ReadingStatus.Okuyorum);
+            var readTask = _context.Books.CountAsync(b => b.Status == ReadingStatus.Okudum);
+            var toReadTask = _context.Books.CountAsync(b => b.Status == ReadingStatus.Okuyacağım);
+            var favoriteTask = _context.Books.CountAsync(b => b.IsFavorite);
 
+            await Task.WhenAll(totalTask, readingTask, readTask, toReadTask, favoriteTask);
+
+            // ---- Liste sorgusu (filtre + sıralama + sayfalama) ----
             var q = _context.Books.AsQueryable();
 
             // Arama
@@ -46,7 +51,7 @@ namespace Kutuphane.Controllers
 
             // Durum filtresi
             if (status.HasValue)
-                q = q.Where(b => b.Status == status);
+                q = q.Where(b => b.Status == status.Value);
 
             // Sıralama
             // sort: title, title_desc, author, author_desc, rating, rating_desc
@@ -57,12 +62,27 @@ namespace Kutuphane.Controllers
                 "author_desc" => q.OrderByDescending(b => b.Author),
                 "rating" => q.OrderBy(b => b.Rating),
                 "rating_desc" => q.OrderByDescending(b => b.Rating),
-                _ => q.OrderBy(b => b.Title) // default: title
+                _ => q.OrderBy(b => b.Title)
             };
 
-            // Sayfalama
             var paged = await PaginatedList<Book>.CreateAsync(q, page, pageSize);
-            return View(paged);
+
+            var vm = new BookListViewModel
+            {
+                Books = paged,
+                TotalCount = await totalTask,
+                ReadingCount = await readingTask,
+                ReadCount = await readTask,
+                ToReadCount = await toReadTask,
+                FavoriteCount = await favoriteTask,
+                Search = search,
+                Status = status,
+                Sort = sort,
+                Page = page,
+                PageSize = pageSize
+            };
+
+            return View(vm);
         }
 
         // GET: Books/Details/5
