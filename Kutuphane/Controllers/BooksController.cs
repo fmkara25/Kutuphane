@@ -27,7 +27,7 @@ namespace Kutuphane.Controllers
             int page = 1,
             int pageSize = 9)
         {
-            // ---- Dashboard sayaçları: ARDIŞIK çalıştır (concurrency yok) ----
+            // ---- Dashboard sayaçları (ardışık) ----
             var totalCount = await _context.Books.AsNoTracking().CountAsync();
             var readingCount = await _context.Books.AsNoTracking().CountAsync(b => b.Status == ReadingStatus.Okuyorum);
             var readCount = await _context.Books.AsNoTracking().CountAsync(b => b.Status == ReadingStatus.Okudum);
@@ -135,6 +135,37 @@ namespace Kutuphane.Controllers
                 throw;
             }
             return RedirectToAction(nameof(Index));
+        }
+
+        // POST: Books/ToggleFavorite/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleFavorite(int id, string? search, ReadingStatus? status, string? sort, int page = 1, int pageSize = 9)
+        {
+            var book = await _context.Books.FindAsync(id);
+            if (book == null) return NotFound();
+
+            book.IsFavorite = !book.IsFavorite;
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index), new { search, status, sort, page, pageSize });
+        }
+
+        // POST: Books/UpdateProgress/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateProgress(int id, int progress, string? search, ReadingStatus? status, string? sort, int page = 1, int pageSize = 9)
+        {
+            if (progress < 0) progress = 0;
+            if (progress > 100) progress = 100;
+
+            var book = await _context.Books.FindAsync(id);
+            if (book == null) return NotFound();
+
+            book.Progress = progress;
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index), new { search, status, sort, page, pageSize });
         }
 
         // GET: Books/Delete/5
