@@ -85,21 +85,23 @@
 </form>
 
 <!-- Sıralama butonları -->
-<div class="btn-group mb-3" role="group" aria-label="Sıralama">
-    <a class="btn btn-outline-secondary @(Model.Sort == "" ? "active" : "")"
-       href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = "", page = 1, pageSize = Model.PageSize })">Başlık (A→Z)</a>
-    <a class="btn btn-outline-secondary @(Model.Sort == "title_desc" ? "active" : "")"
-       href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = "title_desc", page = 1, pageSize = Model.PageSize })">Başlık (Z→A)</a>
-    <a class="btn btn-outline-secondary @(Model.Sort == "author" ? "active" : "")"
-       href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = "author", page = 1, pageSize = Model.PageSize })">Yazar (A→Z)</a>
-    <a class="btn btn-outline-secondary @(Model.Sort == "author_desc" ? "active" : "")"
-       href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = "author_desc", page = 1, pageSize = Model.PageSize })">Yazar (Z→A)</a>
-    <a class="btn btn-outline-secondary @(Model.Sort == "rating_desc" ? "active" : "")"
-       href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = "rating_desc", page = 1, pageSize = Model.PageSize })">Puan (yüksek)</a>
-    <a class="btn btn-outline-secondary @(Model.Sort == "rating" ? "active" : "")"
-       href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = "rating", page = 1, pageSize = Model.PageSize })">Puan (düşük)</a>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="btn-group" role="group" aria-label="Sıralama">
+        <a class="btn btn-outline-secondary @(Model.Sort == "" ? "active" : "")"
+           href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = "", page = 1, pageSize = Model.PageSize })">Başlık (A→Z)</a>
+        <a class="btn btn-outline-secondary @(Model.Sort == "title_desc" ? "active" : "")"
+           href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = "title_desc", page = 1, pageSize = Model.PageSize })">Başlık (Z→A)</a>
+        <a class="btn btn-outline-secondary @(Model.Sort == "author" ? "active" : "")"
+           href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = "author", page = 1, pageSize = Model.PageSize })">Yazar (A→Z)</a>
+        <a class="btn btn-outline-secondary @(Model.Sort == "author_desc" ? "active" : "")"
+           href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = "author_desc", page = 1, pageSize = Model.PageSize })">Yazar (Z→A)</a>
+        <a class="btn btn-outline-secondary @(Model.Sort == "rating_desc" ? "active" : "")"
+           href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = "rating_desc", page = 1, pageSize = Model.PageSize })">Puan (yüksek)</a>
+        <a class="btn btn-outline-secondary @(Model.Sort == "rating" ? "active" : "")"
+           href="@Url.Action("Index", new { search = Model.Search, status = Model.Status, sort = "rating", page = 1, pageSize = Model.PageSize })">Puan (düşük)</a>
+    </div>
+    <a href="@Url.Action("Create")" class="btn btn-success">➕ Yeni Kitap</a>
 </div>
-<a href="@Url.Action("Create")" class="btn btn-success ms-2">➕ Yeni Kitap</a>
 
 @if (!Model.Books.Any())
 {
@@ -118,8 +120,25 @@ else
                              style="height: 220px; object-fit: cover;" />
                     }
                     <div class="card-body">
-                        <h5 class="card-title mb-1">@book.Title</h5>
-                        <div class="text-muted mb-2">@book.Author</div>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="card-title mb-1">@book.Title</h5>
+                                <div class="text-muted mb-2">@book.Author</div>
+                            </div>
+                            <!-- Favori toggle formu -->
+                            <form asp-action="ToggleFavorite" asp-route-id="@book.Id" method="post" class="ms-2">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="search" value="@Model.Search" />
+                                <input type="hidden" name="status" value="@Model.Status" />
+                                <input type="hidden" name="sort" value="@Model.Sort" />
+                                <input type="hidden" name="page" value="@Model.Page" />
+                                <input type="hidden" name="pageSize" value="@Model.PageSize" />
+                                <button type="submit" class="btn btn-sm @(book.IsFavorite ? "btn-warning" : "btn-outline-secondary")" title="Favori">
+                                    @(book.IsFavorite ? "★" : "☆")
+                                </button>
+                            </form>
+                        </div>
+
                         @if (!string.IsNullOrEmpty(book.Genre))
                         {
                             <div><strong>Tür:</strong> @book.Genre</div>
@@ -144,10 +163,17 @@ else
                                 </div>
                             </div>
                         }
-                        @if (book.IsFavorite)
-                        {
-                            <span class="badge bg-warning text-dark mt-2">★ Favori</span>
-                        }
+                        <!-- İlerleme güncelle formu -->
+                        <form asp-action="UpdateProgress" asp-route-id="@book.Id" method="post" class="mt-2 d-flex gap-2 align-items-center">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="search" value="@Model.Search" />
+                            <input type="hidden" name="status" value="@Model.Status" />
+                            <input type="hidden" name="sort" value="@Model.Sort" />
+                            <input type="hidden" name="page" value="@Model.Page" />
+                            <input type="hidden" name="pageSize" value="@Model.PageSize" />
+                            <input type="number" name="progress" class="form-control form-control-sm" style="width:100px" min="0" max="100" value="@(book.Progress ?? 0)" />
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Güncelle</button>
+                        </form>
                     </div>
                     <div class="card-footer d-flex gap-2 justify-content-between">
                         <a asp-action="Edit" asp-route-id="@book.Id" class="btn btn-sm btn-outline-primary">Düzenle</a>
