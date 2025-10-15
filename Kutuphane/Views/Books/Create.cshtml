@@ -2,92 +2,129 @@
 @using Kutuphane.Models
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Yeni Kitap";
 }
 
-<h1>Create</h1>
+<h1 class="mb-3">➕ Yeni Kitap</h1>
 
-<h4>Book</h4>
-<hr />
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-lg-7 col-xl-6">
         <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-            <div class="form-group">
-                <label asp-for="Title" class="control-label"></label>
-                <input asp-for="Title" class="form-control" />
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label"></label>
+                <input asp-for="Title" class="form-control" placeholder="Örn: Suç ve Ceza" />
+                <div class="form-text">Kitabın adı (zorunlu)</div>
                 <span asp-validation-for="Title" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="Author" class="control-label"></label>
-                <input asp-for="Author" class="form-control" />
+            <div class="mb-3">
+                <label asp-for="Author" class="form-label"></label>
+                <input asp-for="Author" class="form-control" placeholder="Örn: Fyodor Dostoyevski" />
+                <div class="form-text">Yazar adı (zorunlu)</div>
                 <span asp-validation-for="Author" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="Genre" class="control-label"></label>
-                <input asp-for="Genre" class="form-control" />
-                <span asp-validation-for="Genre" class="text-danger"></span>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="Genre" class="form-label"></label>
+                    <input asp-for="Genre" class="form-control" placeholder="Roman, Polisiye, Bilimkurgu..." />
+                    <span asp-validation-for="Genre" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Status" class="form-label"></label>
+                    <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<ReadingStatus>()"></select>
+                    <div class="form-text">Okuyorum / Okudum / Okuyacağım</div>
+                    <span asp-validation-for="Status" class="text-danger"></span>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label asp-for="Status" class="control-label"></label>
-                <select asp-for="Status"
-                        class="form-control"
-                        asp-items="Html.GetEnumSelectList<ReadingStatus>()"></select>
-                <span asp-validation-for="Status" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Notes" class="control-label"></label>
-                <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="Notes" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="CoverImageUrl" class="control-label"></label>
-                <input asp-for="CoverImageUrl" class="form-control" />
+            <div class="mb-3">
+                <label asp-for="CoverImageUrl" class="form-label"></label>
+                <input asp-for="CoverImageUrl" class="form-control" placeholder="https://... kapak görseli" id="coverInput" />
+                <div class="form-text">Varsa kitap kapağı için bir görsel URL’si gir.</div>
                 <span asp-validation-for="CoverImageUrl" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="Rating" class="control-label"></label>
-                <input asp-for="Rating" class="form-control" type="number" step="0.1" min="0" max="5" />
-                <span asp-validation-for="Rating" class="text-danger"></span>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="Rating" class="form-label"></label>
+                    <input asp-for="Rating" class="form-control" type="number" step="0.1" min="0" max="5" placeholder="0–5" />
+                    <span asp-validation-for="Rating" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="PageCount" class="form-label"></label>
+                    <input asp-for="PageCount" class="form-control" type="number" min="1" placeholder="Örn: 544" />
+                    <span asp-validation-for="PageCount" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Progress" class="form-label"></label>
+                    <div class="input-group">
+                        <input asp-for="Progress" class="form-control" type="number" min="0" max="100" placeholder="0–100" />
+                        <span class="input-group-text">%</span>
+                    </div>
+                    <span asp-validation-for="Progress" class="text-danger"></span>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label asp-for="PageCount" class="control-label"></label>
-                <input asp-for="PageCount" class="form-control" type="number" min="1" />
-                <span asp-validation-for="PageCount" class="text-danger"></span>
-            </div>
-
-            <div class="form-group form-check">
+            <div class="form-check my-3">
                 <input asp-for="IsFavorite" class="form-check-input" />
                 <label asp-for="IsFavorite" class="form-check-label"></label>
             </div>
 
-            <div class="form-group">
-                <label asp-for="Progress" class="control-label"></label>
-                <input asp-for="Progress" class="form-control" type="number" min="0" max="100" />
-                <span asp-validation-for="Progress" class="text-danger"></span>
+            <div class="mb-3">
+                <label asp-for="Notes" class="form-label"></label>
+                <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Kısa notlar, alıntılar, düşünceler..."></textarea>
+                <span asp-validation-for="Notes" class="text-danger"></span>
             </div>
 
-            <div class="form-group mt-3">
-                <input type="submit" value="Create" class="btn btn-primary" />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check2-circle me-1"></i> Kaydet</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Vazgeç</a>
             </div>
         </form>
     </div>
-</div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+    <!-- Kapak önizleme -->
+    <div class="col-lg-5 col-xl-6">
+        <div class="card ms-lg-4 mt-4 mt-lg-0">
+            <div class="card-header">Kapak Önizleme</div>
+            <div class="card-body d-flex justify-content-center align-items-center" style="min-height:320px;">
+                <img id="coverPreview" src="" alt="Önizleme" class="img-fluid rounded"
+                     style="display:none; max-height:300px; object-fit:cover;" />
+                <div id="coverPlaceholder" class="text-muted">URL girildiğinde kapak burada görünecek</div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        (function () {
+            const input = document.getElementById('coverInput');
+            const img = document.getElementById('coverPreview');
+            const ph = document.getElementById('coverPlaceholder');
+
+            function show(src) {
+                if (!src || !/^https?:\/\//i.test(src)) {
+                    img.style.display = 'none';
+                    ph.style.display = 'block';
+                    img.src = '';
+                    return;
+                }
+                img.src = src;
+                img.onload = () => { img.style.display = 'block'; ph.style.display = 'none'; };
+                img.onerror = () => { img.style.display = 'none'; ph.style.display = 'block'; };
+            }
+
+            if (input) {
+                show(input.value);
+                input.addEventListener('input', () => show(input.value.trim()));
+            }
+        })();
+    </script>
 }
