@@ -1,48 +1,95 @@
 ﻿@model Kutuphane.Models.Book
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Kitap Detay";
 }
 
-<h1>Details</h1>
+<div class="container mt-5">
+    <div class="card shadow-lg border-0">
+        <div class="row g-0">
+            <!-- Kapak Görseli -->
+            <div class="col-md-4">
+                @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+                {
+                    <img src="@Model.CoverImageUrl"
+                         class="img-fluid rounded-start"
+                         alt="@Model.Title"
+                         style="height:100%; object-fit:cover;" />
+                }
+                else
+                {
+                    <div class="d-flex align-items-center justify-content-center bg-light text-muted" style="height:100%;">
+                        <span>Kapak görseli yok</span>
+                    </div>
+                }
+            </div>
 
-<div>
-    <h4>Book</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Title)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Author)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Author)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Genre)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Genre)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Notes)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Notes)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+            <!-- Bilgiler -->
+            <div class="col-md-8">
+                <div class="card-body p-4">
+                    <h2 class="card-title">@Model.Title</h2>
+                    <h5 class="text-muted mb-3">@Model.Author</h5>
+
+                    <dl class="row mb-3">
+                        @if (!string.IsNullOrEmpty(Model.Genre))
+                        {
+                            <dt class="col-sm-4">Tür</dt>
+                            <dd class="col-sm-8">@Model.Genre</dd>
+                        }
+
+                        <dt class="col-sm-4">Durum</dt>
+                        <dd class="col-sm-8">@Model.Status</dd>
+
+                        @if (Model.PageCount.HasValue)
+                        {
+                            <dt class="col-sm-4">Sayfa Sayısı</dt>
+                            <dd class="col-sm-8">@Model.PageCount</dd>
+                        }
+
+                        @if (Model.Rating.HasValue)
+                        {
+                            <dt class="col-sm-4">Puan</dt>
+                            <dd class="col-sm-8">@Model.Rating / 5</dd>
+                        }
+
+                        @if (Model.Progress.HasValue)
+                        {
+                            <dt class="col-sm-4">Okuma İlerlemesi</dt>
+                            <dd class="col-sm-8">
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width:@Model.Progress%">
+                                        @Model.Progress%
+                                    </div>
+                                </div>
+                            </dd>
+                        }
+
+                        <dt class="col-sm-4">Favori</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.IsFavorite)
+                            {
+                                <span class="badge bg-warning text-dark">★ Favori</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Değil</span>
+                            }
+                        </dd>
+                    </dl>
+
+                    @if (!string.IsNullOrEmpty(Model.Notes))
+                    {
+                        <h5>Notlar</h5>
+                        <p>@Model.Notes</p>
+                    }
+
+                    <div class="mt-4 d-flex gap-2">
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">Düzenle</a>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Listeye Dön</a>
+                        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Sil</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
