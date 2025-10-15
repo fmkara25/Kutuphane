@@ -6,6 +6,7 @@ using Kutuphane.Data;
 using Kutuphane.Models;
 using Kutuphane.Helpers;
 using Kutuphane.ViewModels;
+using System.Collections.Generic;
 
 namespace Kutuphane.Controllers
 {
@@ -19,11 +20,13 @@ namespace Kutuphane.Controllers
         }
 
         // GET: Books
-        // Query string: ?search=&status=&sort=&page=&pageSize=
+        // Query: ?search=&status=&genre=&favoritesOnly=&sort=&page=&pageSize=
         public async Task<IActionResult> Index(
             string? search,
             ReadingStatus? status,
-            string? sort,
+            string? genre,
+            bool favoritesOnly = false,
+            string? sort = "",
             int page = 1,
             int pageSize = 9)
         {
@@ -33,6 +36,14 @@ namespace Kutuphane.Controllers
             var readCount = await _context.Books.AsNoTracking().CountAsync(b => b.Status == ReadingStatus.Okudum);
             var toReadCount = await _context.Books.AsNoTracking().CountAsync(b => b.Status == ReadingStatus.Okuyacağım);
             var favoriteCount = await _context.Books.AsNoTracking().CountAsync(b => b.IsFavorite);
+
+            // ---- Genre seçenekleri ----
+            var genres = await _context.Books.AsNoTracking()
+                .Where(b => b.Genre != null && b.Genre != "")
+                .Select(b => b.Genre!)
+                .Distinct()
+                .OrderBy(g => g)
+                .ToListAsync();
 
             // ---- Liste sorgusu (filtre + sıralama + sayfalama) ----
             var q = _context.Books.AsNoTracking().AsQueryable();
@@ -50,6 +61,14 @@ namespace Kutuphane.Controllers
             // Durum filtresi
             if (status.HasValue)
                 q = q.Where(b => b.Status == status.Value);
+
+            // Genre filtresi
+            if (!string.IsNullOrWhiteSpace(genre))
+                q = q.Where(b => b.Genre == genre);
+
+            // Favoriler filtresi
+            if (favoritesOnly)
+                q = q.Where(b => b.IsFavorite);
 
             // Sıralama
             // sort: title, title_desc, author, author_desc, rating, rating_desc
@@ -73,8 +92,13 @@ namespace Kutuphane.Controllers
                 ReadCount = readCount,
                 ToReadCount = toReadCount,
                 FavoriteCount = favoriteCount,
+
                 Search = search,
                 Status = status,
+                Genre = genre,
+                Genres = genres,
+                FavoritesOnly = favoritesOnly,
+
                 Sort = sort,
                 Page = page,
                 PageSize = pageSize
@@ -137,10 +161,10 @@ namespace Kutuphane.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: Books/ToggleFavorite/5
+        // Favori toggle
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ToggleFavorite(int id, string? search, ReadingStatus? status, string? sort, int page = 1, int pageSize = 9)
+        public async Task<IActionResult> ToggleFavorite(int id, string? search, ReadingStatus? status, string? genre, bool favoritesOnly, string? sort, int page = 1, int pageSize = 9)
         {
             var book = await _context.Books.FindAsync(id);
             if (book == null) return NotFound();
@@ -148,13 +172,13 @@ namespace Kutuphane.Controllers
             book.IsFavorite = !book.IsFavorite;
             await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Index), new { search, status, sort, page, pageSize });
+            return RedirectToAction(nameof(Index), new { search, status, genre, favoritesOnly, sort, page, pageSize });
         }
 
-        // POST: Books/UpdateProgress/5
+        // İlerleme güncelle
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateProgress(int id, int progress, string? search, ReadingStatus? status, string? sort, int page = 1, int pageSize = 9)
+        public async Task<IActionResult> UpdateProgress(int id, int progress, string? search, ReadingStatus? status, string? genre, bool favoritesOnly, string? sort, int page = 1, int pageSize = 9)
         {
             if (progress < 0) progress = 0;
             if (progress > 100) progress = 100;
@@ -165,7 +189,7 @@ namespace Kutuphane.Controllers
             book.Progress = progress;
             await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Index), new { search, status, sort, page, pageSize });
+            return RedirectToAction(nameof(Index), new { search, status, genre, favoritesOnly, sort, page, pageSize });
         }
 
         // GET: Books/Delete/5

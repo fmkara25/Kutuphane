@@ -1,22 +1,58 @@
-html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
+﻿/* Genel */
+html, body {
+    height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Kart hover ve min estetik iyileştirmeler */
+.card {
+    transition: transform .12s ease, box-shadow .12s ease;
+}
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    }
+
+/* Dashboard kenarlık renkleri */
+.border-purple {
+    border-color: #6f42c1 !important;
+}
+
+/* Navbar aktif link belirginliği */
+.navbar .nav-link.active {
+    font-weight: 600;
+}
+
+/* Progress bar yazısını daha okunaklı yap */
+.progress-bar {
+    font-size: .75rem;
+}
+
+/* Küçük ekranlarda kart başlık boşluğu */
+.card-title {
+    margin-bottom: .25rem;
+}
+
+/* Dark/Light tema küçük dokunuşlar */
+:root[data-bs-theme="light"] .card {
+    border-color: rgba(0,0,0,.075);
+}
+
+:root[data-bs-theme="dark"] .card {
+    border-color: rgba(255,255,255,.075);
+}
+
+/* Form elementleri arası boşluk */
+form .form-group, form .form-check {
+    margin-bottom: .75rem;
+}
+
+/* Responsive grid boşlukları */
+.row.g-4 {
+    --bs-gutter-x: 1.25rem;
+    --bs-gutter-y: 1.25rem;
 }
