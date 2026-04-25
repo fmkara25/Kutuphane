@@ -16,3 +16,17 @@ Kutuphane is a web application built with ASP.NET Core MVC that allows users to 
 - SQL Server
 - Bootstrap 5
 - Razor Views
+
+## Installation
+
+1. Clone the repository:
+
+git clone https://github.com/YOUR-USERNAME/YOUR-REPO.git
+
+2. Open the project in Visual Studio
+
+3. Update the database:
+
+Update-Database
+
+4. Run the project
