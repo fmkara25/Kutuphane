@@ -21,7 +21,7 @@ Kutuphane is a web application built with ASP.NET Core MVC that allows users to 
 
 1. Clone the repository:
 
-git clone https://github.com/YOUR-USERNAME/YOUR-REPO.git
+git clone https://github.com/fmkara25/Kutuphane.git 
 
 2. Open the project in Visual Studio
 
