@@ -30,3 +30,10 @@ git clone https://github.com/YOUR-USERNAME/YOUR-REPO.git
 Update-Database
 
 4. Run the project
+
+## Usage
+- Add a new book using the Add Book button
+- Edit existing books
+- Delete books from the library
+- Use search and filters to find books
+- Track reading progress and ratings
