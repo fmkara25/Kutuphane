@@ -9,3 +9,10 @@ Kutuphane is a web application built with ASP.NET Core MVC that allows users to 
 - Search and filter books
 - Modern and responsive design
 - Dark mode support
+
+## Technologies
+- ASP.NET Core MVC
+- Entity Framework Core
+- SQL Server
+- Bootstrap 5
+- Razor Views
