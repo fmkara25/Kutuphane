@@ -1,58 +1,416 @@
-﻿/* Genel */
-html, body {
-    height: 100%;
+﻿:root {
+    --bg: #f5f1ea;
+    --surface: rgba(255, 255, 255, .78);
+    --surface-solid: #ffffff;
+    --text: #162018;
+    --muted: #66736b;
+    --primary: #3f7652;
+    --primary-dark: #2f5d40;
+    --accent: #c28a55;
+    --danger: #d6554c;
+    --border: rgba(22, 32, 24, .1);
+    --shadow: 0 20px 60px rgba(38, 50, 43, .14);
+    --radius: 26px;
+}
+
+    :root[data-bs-theme="dark"] {
+        --bg: #101713;
+        --surface: rgba(24, 34, 29, .82);
+        --surface-solid: #18221d;
+        --text: #eff6f1;
+        --muted: #a7b4ad;
+        --primary: #7fbd90;
+        --primary-dark: #9bd4a8;
+        --accent: #e4af72;
+        --danger: #ff8179;
+        --border: rgba(239, 246, 241, .12);
+        --shadow: 0 20px 60px rgba(0, 0, 0, .32);
+    }
+
+html,
+body {
+    min-height: 100%;
 }
 
 body {
+    color: var(--text);
+    background: radial-gradient(circle at 8% 8%, rgba(127, 189, 144, .22), transparent 26rem), radial-gradient(circle at 92% 4%, rgba(228, 175, 114, .18), transparent 26rem), var(--bg);
     -webkit-font-smoothing: antialiased;
 }
 
-/* Kart hover ve min estetik iyileştirmeler */
-.card {
-    transition: transform .12s ease, box-shadow .12s ease;
+.app-shell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-    .card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+.main-content {
+    flex: 1;
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: .75rem;
+}
+
+.navbar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(18px);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    font-weight: 800;
+    letter-spacing: -.04em;
+}
+
+.brand-icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 15px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+}
+
+.nav-link {
+    border-radius: 999px;
+    padding-inline: 1rem !important;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+    .nav-link.active,
+    .nav-link:hover {
+        color: var(--text);
+        background: rgba(127, 189, 144, .16);
     }
 
-/* Dashboard kenarlık renkleri */
-.border-purple {
-    border-color: #6f42c1 !important;
+.btn {
+    border-radius: 999px;
+    font-weight: 700;
 }
 
-/* Navbar aktif link belirginliği */
-.navbar .nav-link.active {
-    font-weight: 600;
+.btn-primary {
+    border: none;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    box-shadow: 0 10px 24px rgba(63, 118, 82, .25);
 }
 
-/* Progress bar yazısını daha okunaklı yap */
+    .btn-primary:hover {
+        filter: brightness(.96);
+    }
+
+.btn-icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    color: var(--primary-dark);
+    border: 1px solid var(--border);
+    background: var(--surface-solid);
+}
+
+.glass-card,
+.book-card,
+.form-panel,
+.details-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(18px);
+}
+
+.hero-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 34px;
+    padding: clamp(1.6rem, 4vw, 3.4rem);
+    color: #fff;
+    background: linear-gradient(135deg, rgba(47, 93, 64, .96), rgba(194, 138, 85, .9));
+    box-shadow: var(--shadow);
+}
+
+    .hero-card::before {
+        content: "";
+        position: absolute;
+        width: 260px;
+        height: 260px;
+        right: -80px;
+        top: -90px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, .18);
+    }
+
+    .hero-card > * {
+        position: relative;
+        z-index: 1;
+    }
+
+.hero-eyebrow {
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    font-size: .78rem;
+    opacity: .85;
+}
+
+.hero-title {
+    font-size: clamp(2.2rem, 5vw, 4.6rem);
+    line-height: .95;
+    letter-spacing: -.07em;
+    font-weight: 850;
+}
+
+.hero-subtitle {
+    max-width: 720px;
+    font-size: 1.1rem;
+    opacity: .9;
+}
+
+.stat-card {
+    padding: 1.25rem;
+    transition: transform .18s ease;
+}
+
+    .stat-card:hover,
+    .book-card:hover {
+        transform: translateY(-5px);
+    }
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 850;
+    letter-spacing: -.05em;
+}
+
+.stat-label {
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+.stat-icon {
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    border-radius: 17px;
+    color: var(--primary-dark);
+    background: rgba(127, 189, 144, .17);
+}
+
+.toolbar-card {
+    padding: 1.1rem;
+}
+
+.form-control,
+.form-select,
+.input-group-text {
+    border-radius: 16px;
+    border-color: var(--border);
+    background-color: var(--surface-solid);
+}
+
+.input-group > .form-control {
+    border-radius: 16px 0 0 16px;
+}
+
+.input-group > .input-group-text {
+    border-radius: 0 16px 16px 0;
+}
+
+.book-card {
+    height: 100%;
+    overflow: hidden;
+    transition: transform .18s ease;
+}
+
+.book-cover {
+    height: 245px;
+    background: linear-gradient(135deg, rgba(127, 189, 144, .16), rgba(228, 175, 114, .18));
+}
+
+    .book-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+.cover-placeholder {
+    height: 100%;
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+}
+
+.book-title {
+    line-height: 1.15;
+    letter-spacing: -.03em;
+    font-weight: 800;
+}
+
+.book-meta,
+.text-muted {
+    color: var(--muted) !important;
+}
+
+.badge-soft {
+    color: var(--text);
+    border: 1px solid var(--border);
+    background: rgba(127, 189, 144, .15);
+}
+
+.rating-stars {
+    color: #d9a441;
+}
+
+.progress {
+    border-radius: 999px;
+    background: rgba(120, 130, 123, .18);
+}
+
 .progress-bar {
-    font-size: .75rem;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
 }
 
-/* Küçük ekranlarda kart başlık boşluğu */
-.card-title {
+.form-panel,
+.details-panel {
+    padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.cover-preview-card {
+    overflow: hidden;
+}
+
+.cover-preview-box {
+    min-height: 360px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, rgba(127, 189, 144, .13), rgba(228, 175, 114, .13));
+}
+
+    .cover-preview-box img {
+        max-height: 340px;
+        border-radius: 22px;
+        box-shadow: var(--shadow);
+    }
+
+.page-link {
+    border-radius: 999px !important;
+    margin-inline: .15rem;
+    border-color: var(--border);
+    color: var(--primary-dark);
+}
+
+.page-item.active .page-link {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.footer {
+    color: var(--muted);
+    padding: 1.5rem 0;
+}
+
+@media (max-width: 768px) {
+    .topbar {
+        padding: .5rem;
+    }
+
+    .book-cover {
+        height: 210px;
+    }
+
+    .hero-card {
+        border-radius: 26px;
+    }
+}
+
+/* Smaller, more user-friendly book cards */
+.book-cover {
+    height: 175px;
+}
+
+.book-card .p-4 {
+    padding: 1rem !important;
+}
+
+.book-title {
+    font-size: 1rem;
     margin-bottom: .25rem;
 }
 
-/* Dark/Light tema küçük dokunuşlar */
-:root[data-bs-theme="light"] .card {
-    border-color: rgba(0,0,0,.075);
+.book-meta {
+    font-size: .85rem;
 }
 
-:root[data-bs-theme="dark"] .card {
-    border-color: rgba(255,255,255,.075);
+.book-card .badge {
+    font-size: .68rem;
 }
 
-/* Form elementleri arası boşluk */
-form .form-group, form .form-check {
-    margin-bottom: .75rem;
+.book-card .btn-sm {
+    padding: .25rem .65rem;
+    font-size: .78rem;
 }
 
-/* Responsive grid boşlukları */
-.row.g-4 {
-    --bs-gutter-x: 1.25rem;
-    --bs-gutter-y: 1.25rem;
+.book-card .progress {
+    height: 7px !important;
+}
+
+.rating-stars {
+    font-size: .85rem;
+}
+
+@media (max-width: 768px) {
+    .book-cover {
+        height: 190px;
+    }
+}
+
+/* Compact book cards */
+.row-cols-xl-4 .book-card {
+    border-radius: 20px;
+}
+
+.book-cover {
+    height: 165px !important;
+}
+
+.book-card .p-4 {
+    padding: .9rem !important;
+}
+
+.book-title {
+    font-size: .95rem;
+}
+
+.book-meta {
+    font-size: .8rem;
+}
+
+.book-card .badge {
+    font-size: .66rem;
+}
+
+.book-card .btn-sm {
+    padding: .22rem .55rem;
+    font-size: .75rem;
+}
+
+.rating-stars {
+    font-size: .8rem;
+}
+
+.book-card .progress {
+    height: 6px !important;
 }
